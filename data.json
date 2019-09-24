@@ -1,0 +1,32 @@
+[{
+      "id": 1,
+      "username": "johndoe",
+      "email": "johndoe@gmail.com",
+      "password": "1234",
+      "role": "root",
+      "createdAt": "Basic"
+  },
+  {
+    "id": 2,
+    "username": "foo",
+    "email": "foo@gmail.com",
+    "password": "1234",
+    "role": "root",
+    "createdAt": "Root"
+  },
+  {
+    "id": 3,
+    "username": "bar",
+    "email": "bar@gmail.com",
+    "password": "1234",
+    "role": "root",
+    "createdAt": "Basic"
+  },
+  {
+    "id": 4,
+    "username": "paul",
+    "email": "paul@gmail.com",
+    "password": "1234",
+    "role": "root",
+    "createdAt": "Basic"
+  }]
