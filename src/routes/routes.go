@@ -2,30 +2,60 @@ package routes
 
 import (
 	"encoding/json"
-	m "models"
+	"models"
 	"net/http"
-	"time"
+	"utils"
+
+	"github.com/jinzhu/gorm"
 )
 
-// GET /api/users
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
+func RenderRoute(route string, db *gorm.DB) func(http.ResponseWriter, *http.Request) {
+	// GET /api/users
+	getUsers := func(w http.ResponseWriter, r *http.Request) {
+		var users []models.User
 
-	u := m.User{
-		ID:         1,
-		Username:   "john",
-		Email:      "johndoe@gmail.com",
-		Password:   "1234",
-		Role:       "basic",
-		CreatedAt:  time.Now().Format("UnixDate"),
-		ModifiedAt: time.Now().Format("UnixDate"),
+		// get users
+		db.Find(&users)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		json.NewEncoder(w).Encode(utils.WrappedResponseSuccessMany{
+			Status:  200,
+			Success: true,
+			Data:    users,
+		})
+
 	}
 
-	json.NewEncoder(w).Encode(m.WrappedResponseSuccessOne{
-		Status:  200,
-		Success: true,
-		Data:    u,
-	})
+	// POST /api/users
+	postUser := func(w http.ResponseWriter, r *http.Request) {
+		var user models.User
 
+		if e := json.NewDecoder(r.Body).Decode(&user); e != nil {
+			utils.ErrorResponse(e, w)
+		}
+
+		// stores the user in the database
+		db.Create(&user)
+
+		// HTTP Response Headers
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+
+		// JSON response
+		json.NewEncoder(w).Encode(utils.WrappedResponseSuccessOne{
+			Status:  200,
+			Success: true,
+			Data:    user,
+		})
+	}
+
+	switch route {
+	case "getUsers":
+		return getUsers
+	case "postUser":
+		return postUser
+	default:
+		return getUsers
+	}
 }

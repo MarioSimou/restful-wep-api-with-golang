@@ -1,8 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"models"
 	"net/http"
@@ -10,6 +9,8 @@ import (
 	"routes"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/joho/godotenv"
 )
 
@@ -20,29 +21,28 @@ func init() {
 }
 
 func main() {
-	var users models.Users
-
-	f, e := os.Open(os.Getenv("MOCK_PATH"))
-	check(e)
-	defer f.Close()
-
-	b, e := ioutil.ReadAll(f)
+	db, e := gorm.Open("postgres", os.Getenv("POSTGRES_URI")+"?sslmode=disable")
 	check(e)
 
-	if e := json.Unmarshal(b, &users); e != nil {
-		log.Fatal(e)
+	defer db.Close()
+
+	// creates the table if does not exists
+	if !db.HasTable(models.User{}) {
+		fmt.Println("executed twice")
+		db.CreateTable(&models.User{})
 	}
 
 	// routes
-	launchServer(&users)
+	launchServer(db)
 
 }
 
-func launchServer(users *models.Users) {
+func launchServer(db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// GET /api/users
-	router.HandleFunc("/api/users", routes.GetUsers)
+	router.HandleFunc("/api/users", routes.RenderRoute("getUsers", db)).Methods("GET")
+	router.HandleFunc("/api/users", routes.RenderRoute("postUser", db)).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), router))
 }
