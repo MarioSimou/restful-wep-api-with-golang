@@ -7,32 +7,31 @@ import (
 )
 
 type WrappedResponseSuccessOne struct {
-	Status  int16       `json:"status"`
+	Status  int       `json:"status"`
 	Success bool        `json:"success"`
 	Data    models.User `json:"data"`
 }
 
 type WrappedResponseSuccessMany struct {
-	Status  int16         `json:"status"`
+	Status  int         `json:"status"`
 	Success bool          `json:"success"`
 	Data    []models.User `json:"data"`
 }
 
 type WrappedResponseError struct {
-	Status  int16  `json:"status"`
+	Status  int  `json:"status"`
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
-func ErrorResponse(e error, w http.ResponseWriter) {
+func ErrorResponse(status int, message string, w http.ResponseWriter) {
 	// HTTP Response Headers
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
+	w.WriteHeader(status)
 
 	json.NewEncoder(w).Encode(WrappedResponseError{
-		Status:  400,
+		Status:  status,
 		Success: false,
-		Message: e.Error(),
+		Message: message,
 	})
-	return
 }

@@ -28,7 +28,7 @@ func main() {
 
 	// creates the table if does not exists
 	if !db.HasTable(models.User{}) {
-		fmt.Println("executed twice")
+		fmt.Println("user table is created...")
 		db.CreateTable(&models.User{})
 	}
 
@@ -39,10 +39,14 @@ func main() {
 
 func launchServer(db *gorm.DB) {
 	router := mux.NewRouter().StrictSlash(true)
+	api := router.PathPrefix("/api").Subrouter()
 
 	// GET /api/users
-	router.HandleFunc("/api/users", routes.RenderRoute("getUsers", db)).Methods("GET")
-	router.HandleFunc("/api/users", routes.RenderRoute("postUser", db)).Methods("POST")
+	api.HandleFunc("/users", routes.FetchRoute(routes.GET_USERS, db)).Methods("GET")
+	api.HandleFunc("/users/{id:[0-9]+}", routes.FetchRoute(routes.GET_USER, db)).Methods("GET")
+	api.HandleFunc("/users", routes.FetchRoute(routes.POST_USER, db)).Methods("POST")
+	api.HandleFunc("/users/{id:[0-9]+}", routes.FetchRoute(routes.DELETE_USER,db)).Methods("DELETE")
+	api.HandleFunc("/users/{id:[0-9]+}", routes.FetchRoute(routes.PUT_USER, db)).Methods("PUT")
 
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), router))
 }
